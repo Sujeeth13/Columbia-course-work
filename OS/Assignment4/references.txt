@@ -1,0 +1,64 @@
+Reference List for W4118 Homework
+
+/* include the following statement if you have not referenced anything */
+In doing my homework, I certify that I have not used any materials
+other than the course textbooks and Linux source code, and I have not
+discussed the homework assignment with anyone other than the W4118
+instructional staff and, for the team programming portion of the assignment,
+my team.
+
+1. https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md#2--filtering
+  - used for BPF logic
+
+2. Brett Jia (TA): tools/runqlat.bt: CPU scheduler run queue latency as a histogram. Examples.
+  - gave advice to look for implementation of run queue latency on the github repo provided in the spec
+  - Brett also explained how to use "sudo bpftrace -l" to find all available tracepoints
+    - enabled us to find:
+      - tracepoint:sched:sched_process_exit
+      - tracepoint:sched:sched_wakeup
+      - tracepoint:sched:sched_wakeup_new
+      - tracepoint:sched:sched_switch
+
+3. https://medium.com/@_piyushjena/a-terse-guide-to-linux-schedulers-part-1-cca87df04d21
+    https://medium.com/@_piyushjena/a-terse-guide-to-linux-schedulers-part-2-8668a800824e
+  - very useful links for understanding how to setup a scheduling class, and how to setup a scheduling entity. 
+
+4. https://chat.openai.com/
+  - used chatgpt for handling git commits 
+
+5. https://elixir.bootlin.com/linux/latest/source/kernel/sched/rt.c#L1697
+  - bootlin for tracing load balancing 
+
+6. Office hours with Emma
+  - gave insight into where _setscheduler_prio & _setscheduler_params
+
+7. Office hours with Prof Nieh
+  - gave insight into guiding FIFO -> RR -> SJF development path 
+  - Gave insight into using SJF for max throughput 
+  - gave insight into review rt.c for load balancing 
+
+8. Spoke to Brennan:
+  - explained concepts of where TIF_NEED_RESCHED flag gets called. 
+
+9. https://edstem.org/us/courses/45654/discussion/
+  - referenced Ed for multiple areas including (not changing prios using __normal_prio) 
+  - debugging kernel not booting after becoming default 
+  - changing kthread to ensure kernel boots 
+
+10. referenced previous homework on how to add elements to a list_head 
+
+11. referenced homework 3 for understanding state changes (part 1) 
+
+12. lectures slides & recordings:
+  - how does a scheduler work 
+  - using double_lock_balance etc. 
+  - fundamentals of load balancing 
+  - task_tick, scheduling class, scheduling entity, run queues 
+
+13. Met with Jonothan
+  - helped debug a silly error with BUG() in switched_to_oven()
+
+/* replace with your names and UNIs */
+Nicholas Ching (nc2935)
+Sujeeth Bhavanam (sb4839)
+Noam Bechhofer (neb2162)

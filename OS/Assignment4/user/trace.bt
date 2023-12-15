@@ -1,0 +1,63 @@
+#!/usr/bin/env bpftrace
+
+#include <linux/sched.h>
+
+BEGIN
+{
+	printf("COMM,PID,RUNQ_MS,TOTAL_MS\n");
+}
+
+tracepoint:sched:sched_wakeup
+{
+	@last_runq_time[args->pid] = nsecs/1000000;
+}
+
+
+/* start rq timer, start total timer */
+tracepoint:sched:sched_wakeup_new
+{
+	// initializing total process time
+	@is_traced[args->pid] = 0xDEADBEEF;
+	@tot_time[args->pid] = nsecs/1000000;
+
+	// initializing run queue latency vars
+	@tot_runq_lat[args->pid] = 0;
+	@last_runq_time[args->pid] = nsecs/1000000;
+}
+
+
+/** stop total timer */
+tracepoint:sched:sched_process_exit
+{
+	if (@is_traced[args->pid] == 0xDEADBEEF && args->comm == "fibonacci_tail") {
+		@tot_time[args->pid] = nsecs/1000000 - @tot_time[args->pid];
+		printf("%s,%d,%d,%d\n", args->comm, args->pid, @tot_runq_lat[args->pid], @tot_time[args->pid]);
+	}
+}
+
+/** stop rq timer */
+
+tracepoint:sched:sched_switch
+{
+	if (args->prev_state == TASK_RUNNING) {
+		// we know that a task got preempted and is going back on the run queue
+		@last_runq_time[args->prev_pid] = nsecs/1000000;
+	}
+
+	// stop rq timer for next
+
+	$runq_time = nsecs/1000000 - @last_runq_time[args->next_pid];
+	@tot_runq_lat[args->next_pid] += (int64) $runq_time;
+}
+
+
+END
+{
+	clear(@tot_time);
+	clear(@tot_runq_lat);
+	clear(@last_runq_time);
+	clear(@is_traced);
+
+	printf("\n");
+}
+

@@ -1,0 +1,120 @@
+
+Homework 4 README
+
+*IMPORTANT PLEASE READ* 
+Please note that due to merge conflicts and running out of time, the branch "complete-hw4" is the completed HW4. 
+
+Because Nick and Sujeeth ran into errors with branch management we could not merge with main. Merging with main caused compiling errors after
+management. Because of this poor branch management - there may be < 5 commits for Noam on the "complete-hw4" branch. For a reflection of his 
+contributions to this project - please review the branches: "Q1", "Q2-SJF" and "Q6" and the Contributions below. 
+
+In addition, please note (mentioned in an explanation of sections) that Sujeeth copied code from his laptop to Nick's laptop because of issues 
+with his computer. He completed Load Balancing. Check "load_balance" branch for his contributions. 
+
+
+ 
+Contributions:
+  Nick (nc2935):
+  - worked with Noam to complete Part 1 (did pair programming). Noam completed the majority of the coding -- I checked the logic and formatting of the output
+  - Helped finalize skeleton (just basic hooks for scheduling class) -- got VM to boot without running any scheduling class 
+  - Implemented FIFO with Sujeeth -- working enqueue, dequeue and pick_next_task functionality
+  - Implemented RR with Sujeeth -- working task_tick function (cleaning fields and formatting output) 
+  - Implemented SJF -- including handling weights, modifying sched_entity, setting boundaries for weights & sjf list 
+    - worked on logic with both Noam and Sujeeth for SJF implementation 
+  - collected traces with Sujeeth -- for CFS (1 and 4 cores), SJF with RR (1 and 4 cores), load balancing (4 cores), tail_completion_time (4 cores)
+  - revised part 6 with Sujeeth (q1 and q3 modified)
+  - completed checkpatch of the completed project 
+
+  Sujeeth (sb4839):
+  - Implemented FIFO with Nick -- working enqueue, dequeue and pick_next_task functionality
+  - Implemented RR with Nick -- working task_tick function (cleaning fields and formatting output) 
+  - Added functionality for changing SJF pick_next_task to select the appropriate task from RR or SJF run queues 
+  - Implemented ALL of load balancing. 
+  - collected traces with Sujeeth -- for CFS (1 and 4 cores), SJF with RR (1 and 4 cores), load balancing (4 cores), tail_completion_time (4 cores)
+  - revised part 6 with Nick (q1 and q3 modified)
+  - wrote README 
+
+  Noam (neb2162):
+  - Built skeleton code for part 1, compiled and tested all code for part 1. Did majority of work to set up part 1 scheduling (checked logic with Nick)
+  - completed initial averages and tracing for part 1 (cfs task sets) and included in README 
+  - Built initial skeleton functions for empty scheduling class in oven.c, linux/include/asm-generic/vmlinux.lds.h and linux/include/uapi/linux/sched.h
+  - Implemented version of SJF (not merged with the final product. Please see contributions in Q2-SJF branch for all contributions!)
+  - Completed initial answers for part 6. 
+  - Git branch setup 
+
+# PART 1 AVERAGE
+Results for 1 core CPU and CFS scheduling: 
+  Task set 1:
+    Run queue time: 2268.36
+    Average completion task: 2303.62
+  Task set 2:
+    Run queue time: 537.98
+    Average completion time: 556.69
+Results for 4 core CPU and CFS scheduling:
+  Task set 1:
+    Run queue time: 153.63
+    Average completion time: 185.1
+  Task set 2:
+    Run queue time: 43.57
+    Average completion time: 56.73
+
+# Part 2
+Oven Scheduler description:
+- The oven runqueue consists of two list heads namely the round robin list and SJF list.
+- By default any task using our policy takes a priority of 10000 and gets queued onto the round robin list.
+- The minimum priority for a task using our policy is 200. Any task using our policy and whose priority is less than 10000 gets queued to SJF list.
+- We enqueue on to a round robin list onto the tail and dequeue from the head while in SJF list, we enqueue to the tail.
+- The pick next task function checks if the SJF list has any tasks in it, if it does then it returns the task with the least priority. If not it returns the first task i.e. the head of the round robin list.
+- We added a sched oven entity to the task struct which has two fields, namely, the weight attribute which tells the priority of a task using OVEN policy and a list head.
+
+# Part 3
+We used SJF first algorithm to perform better in terms of average completion time compared to CFS. We set the priority of each task as MIN_PRIO (which is 200) + n, where n is the input to the fib function.
+Results for 1 core CPU and OVEN scheduling: 
+  Task set 1:
+    Run queue time: 1861.7
+    Average completion task: 1901.66
+    The average completion time for our scheduler vs CFS : 1901.66 < 2303.62
+  Task set 2:
+    Run queue time: 512.77
+    Average completion time: 530.96
+    The average completion time for our scheduler vs CFS : 530.96 < 556.69
+Results for 4 core CPU and OVEN scheduling:
+  Task set 1:
+    Run queue time: 85.51
+    Average completion time: 118.07
+    The average completion time for our scheduler vs CFS : 118.07 < 185.1
+  Task set 2:
+    Run queue time: 52.37
+    Average completion time: 58.81
+    The average completion time for our scheduler vs CFS : 58.81 > 56.73
+
+# Part 4 (Sujeeth pushed the load balance logic to load_balance branch but we copied code to nick-get-prio branch to avoid merge conflicts)
+The load balancer iterates through each online cpu and iterates through SJF list first and tries to find the task with the highest priority and if it has no migratable task then it searches in the round robin list.
+If the cpu's rq has no task that can be migrated or if it has less than 2 tasks then it moves to the next CPU. A task is migratable if it is not a kthread per cpu process
+or if it is not the current running process in the rq or if we are not pulling to an inactive CPU.
+Results for 4 core CPU and OVEN scheduling and load balancing:
+  Task set 1:
+    Run queue time: 53.99
+    Average completion time: 84.35
+    The average completion time for our scheduler with load balancing vs CFS : 84.35 < 185.1
+  Task set 2:
+    Run queue time: 34.81
+    Average completion time: 43.54
+    The average completion time for our scheduler with load balancing vs CFS : 43.54 < 56.73
+Our scheduler with load balancing does better in terms of average completion than CFS and our scheduler with no load balancing.
+
+# Part 5
+We compared the tail completion for CFS with RR, FIFO, LJF(Longest job first), SJF(Shortest job first) for both tasksets.
+Task set 1:
+  CFS: 943
+  RR: 943
+  FIFO: 977
+  LJF: 1071
+  SJF: 1163
+Task set 2:
+  CFS: 467
+  RR: 463
+  FIFO: 458
+  LJF: 460
+  SJF: 455
+Based on the results we concluded that RR is the best.
