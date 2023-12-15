@@ -1,0 +1,30 @@
+/* include the following statement if you have not referenced anything */
+In doing my homework, I certify that I have not used any materials
+other than the course textbooks and Linux source code, and I have not
+discussed the homework assignment with anyone other than the W4118
+instructional staff and, for the team programming portion of the assignment,
+my team.
+
+1. https://en.wikipedia.org/wiki/Inode
+2. https://en.wikipedia.org/wiki/Loop_device
+3. https://en.wikipedia.org/wiki/Device_file#BLOCKDEV
+4. https://www.brudenossg.com/tip4.php
+5. https://blogs.oracle.com/linux/post/mkfsext4-what-it-actually-creates
+6. https://www.stackscale.com/blog/inodes-linux/
+7. https://en.wikipedia.org/wiki/Unix_File_System#Design
+8. https://www.baeldung.com/linux/ls-total-output
+9. https://bugzilla.redhat.com/show_bug.cgi?id=1749390
+10. https://linux-kernel-labs.github.io/refs/heads/master/labs/filesystems_part2.html
+11. https://edstem.org/us/courses/45654/discussion/4007679
+12. https://opensource.com/life/16/10/introduction-linux-filesystems
+13. Office hours 
+14. Suwei Ma helped remind us to set the file size in the read 
+15. https://www.linuxfoundation.org/blog/blog/classic-sysadmin-the-linux-filesystem-explained
+16. Ed for general questions 
+17. lecture & lecture notes for all steps of the homework
+18. Used Ramfs, bfs, minixfs for reference 
+19. used ChatGPT to generate the test.c file that was used to test reading outside the bounds of the file. 
+
+Nicholas Ching (nc2935)
+Noam Bechhofer (neb2162) 
+Sujeeth Bhavanam (sb4839)

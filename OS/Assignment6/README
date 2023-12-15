@@ -1,0 +1,117 @@
+Enter your answer in the designated location. Do NOT remove lines that start
+with '='. Only replace your UNI and 'X'. You may include comments. If you have
+less than 3 group mates, please delete the extra 'students'.
+
+================================== student1 start ==============================
+neb2162: 20hrs
+difficulty: hmwk1 < hmwk2 < hmwk6 < hmwk3 < hmwk4 < hmwk5
+learned: hmwk1 < hmwk3 < hmwk2 < hmwk5 < hmwk4 < hmwk6
+rating: 4
+comments: The teaching staff may have underestimated how much time this 
+assignment would take. OS assignments are extremely time consuming, and it
+would be nice to have the assignment that coincides with finals be one that
+takes just a few hours. That said, the assignment is fairly straightforward
+conceptually compared to 3, 4, and 5.
+
+=================================== student1 end ===============================
+
+================================== student2 start ==============================
+sb4839: 60-70 hrs
+difficulty: hmwk1 < hmwk2 < hmwk6 < hmwk5 < hmwk3 < hmwk4
+learned: hmwk1 < hmwk2 < hmwk3 < hmwk6 < hmwk5 < hmwk4
+rating: 5
+comments: The assignments were very well structured but very time consuming.
+It would have been nice if we were given more time per assignment. But in terms
+of overall content learnt, I think a very good job was done in that aspect.
+
+=================================== student2 end ===============================
+
+================================== student3 start ==============================
+nc2935: 60-70 hrs
+difficulty: hmwk1 < hmwk2 < hmwk6 < hmwk3 < hmwk5 < hmwk4
+learned: hmwk1 < hmwk2 < hmwk6 < hmwk5 < hmwk3 < hmwk4
+rating: 5
+comments: I think that this course is well structured, but I think the teaching 
+staff have underestimated the amount of time per assignment. I suspect that the 
+staff assumed certain tasks were obvious when they weren't. This class very much
+throws you in the deep end and you either drown or survive. 
+
+With all that said - I have learned more from this class than any other CS class 
+I have taken. It was tough, and even though my grades aren't great - i have a 
+deep understanding of the material. 
+
+=================================== student3 end ===============================
+
+You may include other README information after this line:
+
+Part 1: N/A
+
+Part 2: N/A
+
+Part 3: (Written by Noam)
+Implemented as specified in the assignment
+- implemented specified files by inserting them into the inode, creating appropriate dentries, and inserting them into the correct disk block numbers.
+
+Part 4 (Written by Nick)
+Implemented as specified in the assignment
+- Successfully mounted and initialized the myezfs file system. 
+- Created skeleton for file operations, inode operations and super operations 
+- Implemented the file_type struct
+- Implemented the fill_super file -- read the Sb from disk and create the vfs-representation of an inode. Then made that inode the root. 
+
+Part 5 (Written by Nick)
+Implemented as specified in the assignment
+- Implemented ls functionality in the root. Required making lookup return null, and the myezfs_iterate_shared
+- Emitted the dot and dot dot
+- iterated over the dentries in a directory and emitted the results. 
+
+Part 6 (Done by Nick and Sujeeth) 
+Implemented as specific in the assignment
+- Nick implemented the lookup function
+- Sujeeth implemented the iget function
+
+Part 7 (done by Sujeeth)
+Implemented as specified in the assignment
+- implemented get_blocks function 
+- implemented read_folios --> block_read_full_folio -> get_blocks 
+- implemented appropriate locking mechanisms
+
+Part 8 (done by Sujeeth) 
+Implemented as specified in the assignment
+- adjusted get_blocks
+- implemented ezfs_write_begin, ezfs_write_end, ezfs_write_inode 
+- there was a problem with reflecting the correct block size. not able to free the blocks if we are shrinking the file size
+
+Part 9 (done by Nick & Sujeeth)
+Implemented as specified in the assignment
+- implemented the create function
+- inserted appropriate locking mechanisms 
+
+Part 10 (done by Sujeeth)
+Implemented as specified in the assignment 
+- implemented the ezfs_unlink, ezfs_evict_inode
+
+Part 11 (done by Nick...)
+- implemented functionality to mkdir and rmdir 
+- rmdir works as expected
+- mkdir has issues where the directory can be made and cd'd into, but you cannot create files in the new directory 
+
+Part 12 (done by Sujeeth...)
+- added generic_file mmap. 
+- was able to compile functions and run them 
+
+------------------------------------
+
+Part 12 questions: 
+
+- we did not implement functionality for renaming a file. this is something that was done on the default Linux fs 
+- we are not able to change file permissions using chmod
+- we cannot implement remap_file_range or copy_file_range  
+- we cannot check flags 
+- we didn't implement functionality for symlink 
+
+there were a few other functions that our file system did not implement. 
+
+
+
+
