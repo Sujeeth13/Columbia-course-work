@@ -1,0 +1,53 @@
+Part 4:
+Enter your answer in the designated location. Do NOT remove lines that start
+with '='.
+
+================================== Q1 start ===================================
+1. There are a few PIDs that are reserved for system processes and kernel
+threads. These include PIDs 0, 1, and 2. What is the process name associated
+with each of these three PIDs (some may have multiple acceptable names)?
+
+PID 0: swapper/0
+PID 1: systemd
+PID 2: kthreadd
+
+=================================== Q1 end ====================================
+
+
+================================== Q2 start ===================================
+2. Give the exact URL on https://elixir.bootlin.com/linux/v6.1.11/source
+pointing to the file and line number at which the data structure describing the
+process with PID 0 is defined. Note: make sure you use v6.1.11.
+
+URL: https://elixir.bootlin.com/linux/v6.1.11/source/init/init_task.c#L64
+
+=================================== Q2 end ====================================
+
+
+================================== Q3 start ===================================
+3. Give the exact URL on https://elixir.bootlin.com/linux/v6.1.11/source
+pointing to the file and line number at which the function that executes
+instructions to context-switch from one task to another is defined. Please
+provide an answer for both arm64 and x86-64. Note: use v6.1.11.
+
+ARM64 URL:
+https://elixir.bootlin.com/linux/v6.1.11/source/arch/arm64/kernel/entry.S#L825
+
+x86-64 URL:
+https://elixir.bootlin.com/linux/v6.1.11/source/arch/x86/kernel/process_64.c#L558
+
+=================================== Q3 end ====================================
+
+
+================================== Q4 start ===================================
+4. Give the exact URL on https://elixir.bootlin.com/linux/v6.1.11/source
+pointing to the file and line number at which the process with PID 1 starts
+running as the currently running process. Please provide an answer for both
+arm64 and x86-64. Note: use v6.1.11.
+
+ARM64 URL:
+https://elixir.bootlin.com/linux/v6.1.11/source/arch/arm64/kernel/entry.S#L849
+x86-64 URL:
+https://elixir.bootlin.com/linux/v6.1.11/source/arch/x86/kernel/process_64.c#L661
+
+=================================== Q4 end ====================================
