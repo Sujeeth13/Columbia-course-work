@@ -7,8 +7,8 @@ with '='.
 threads. These include PIDs 0, 1, and 2. What is the process name associated
 with each of these three PIDs (some may have multiple acceptable names)?
 
-PID 0: swapper/0
-PID 1: systemd
+PID 0: swapper
+PID 1: init (OR systemd)
 PID 2: kthreadd
 
 =================================== Q1 end ====================================
@@ -17,7 +17,7 @@ PID 2: kthreadd
 ================================== Q2 start ===================================
 2. Give the exact URL on https://elixir.bootlin.com/linux/v6.1.11/source
 pointing to the file and line number at which the data structure describing the
-process with PID 0 is defined. Note: make sure you use v6.1.11.
+init process is defined. Note: make sure you use v6.1.11.
 
 URL: https://elixir.bootlin.com/linux/v6.1.11/source/init/init_task.c#L64
 
@@ -30,11 +30,8 @@ pointing to the file and line number at which the function that executes
 instructions to context-switch from one task to another is defined. Please
 provide an answer for both arm64 and x86-64. Note: use v6.1.11.
 
-ARM64 URL:
-https://elixir.bootlin.com/linux/v6.1.11/source/arch/arm64/kernel/entry.S#L825
-
-x86-64 URL:
-https://elixir.bootlin.com/linux/v6.1.11/source/arch/x86/kernel/process_64.c#L558
+ARM64 URL: https://elixir.bootlin.com/linux/v6.1.11/source/arch/arm64/kernel/entry.S#L825
+x86-64 URL: https://elixir.bootlin.com/linux/v6.1.11/source/arch/x86/entry/entry_64.S#L237
 
 =================================== Q3 end ====================================
 
@@ -45,9 +42,7 @@ pointing to the file and line number at which the process with PID 1 starts
 running as the currently running process. Please provide an answer for both
 arm64 and x86-64. Note: use v6.1.11.
 
-ARM64 URL:
-https://elixir.bootlin.com/linux/v6.1.11/source/arch/arm64/kernel/entry.S#L849
-x86-64 URL:
-https://elixir.bootlin.com/linux/v6.1.11/source/arch/x86/kernel/process_64.c#L661
+ARM64 URL: https://elixir.bootlin.com/linux/v6.1.11/source/arch/arm64/kernel/entry.S#L856
+x86-64 URL: https://elixir.bootlin.com/linux/v6.1.11/source/arch/x86/entry/entry_64.S#L287
 
 =================================== Q4 end ====================================

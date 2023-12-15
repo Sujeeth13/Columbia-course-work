@@ -928,7 +928,6 @@ SYSCALL_DEFINE1(setfsgid, gid_t, gid)
 }
 #endif /* CONFIG_MULTIUSER */
 
-
 /**
  * sys_getpid - return the thread group id of the current process
  *

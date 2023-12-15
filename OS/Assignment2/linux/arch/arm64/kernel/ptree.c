@@ -1,11 +1,9 @@
 #include <linux/sched.h>
 #include <linux/sched/task_stack.h>
 
-#include <asm/switch_to.h>
 #include <linux/processor.h>
-#include <linux/printk.h>
 
 unsigned long get_kernelpc(struct task_struct *task)
 {
-	return ((struct inactive_task_frame *)task->thread.sp)->ret_addr;
+	return task->thread.cpu_context.pc;
 }

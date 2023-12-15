@@ -1,91 +1,70 @@
+#define _GNU_SOURCE
 #include <stdio.h>
-#include <linux/kernel.h>
-#include <linux/tskinfo.h>
-#include <sys/syscall.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <signal.h>
 #include <pthread.h>
 
-void *dummy(void *ptr)
-{ /*dummy function the thread executes*/
-	while (1)
-		;
-	return NULL;
-}
+int my_fork(void)
+{
+	int x;
 
-void make_process_tree(void)
-{ /* makes the requested process tree*/
-	pid_t pid1, pid2, pid3, pid4;
-	pthread_t thread;
-	sleep(2);
-	printf("Process 1: %d\n", getpid());
-	pthread_create(&thread, NULL, dummy, NULL);
-	pid1 = fork();
-
-	if (pid1 < 0) {
-		perror("fork failed");
+	x = fork();
+	if (x < 0) {
+		fprintf(stderr, "error: %s.", strerror(errno));
 		exit(1);
 	}
+	return x;
+}
 
-	if (pid1 == 0) {  /*Child 5002*/
-		/*This child can be used to spawn another child: 5003*/
-		pid3 = fork();
-		if (pid3 == 0) { /*Child 5004*/
-			while (1)
-				;
-			exit(0);
-		}
-		wait(NULL);
-		exit(0);  /*Exit child 5002*/
-	} else {
-		pid2 = fork();
-		if (pid2 < 0) {
-			perror("fork failed");
-			exit(1);
-		}
-
-		if (pid2 == 0) {  /*Child 5003*/
-			/*This child can be used to spawn another child: 5004*/
-			sleep(2);
-			pid4 = fork();
-			if (pid4 == 0) { /*Child 5005*/
-				while (1)
-					;
-				exit(0);
-			}
-			wait(NULL);
-			exit(0);  // Exit child 5003
-		}
-	}
-
-	wait(NULL);
-	wait(NULL);
-	pthread_join(thread, NULL);
-	return;
+void *start_thread(void *arg)
+{
+	printf("starting thread with thid %d\n", gettid());
+	while (1)
+		;
 }
 
 int main(void)
 {
-	pid_t pid;
-	pid = getpid();
-	while (pid != 4999) { /* loopning till we can make a process with pid 5000*/
-		pid = fork();
-		if (pid == 0)
-			exit(1);
+	int x, y;
+	pthread_t thid;
+
+	while (1) {
+		x = my_fork();
+		if (x)
+			exit(0);
+		else {
+			x = getpid();
+			if (x == 5000) {
+				pthread_create(&thid, NULL, start_thread, NULL);
+				break;
+			}
+		}
 	}
-	pid = fork();
-	if (pid < 0) {
-		perror("fork failed");
-		exit(1);
-	} else if (pid == 0) { /*Process 5000 makes the desired tree*/
-		make_process_tree();
-	} else { /*parent of process 5000 exits so that process 5000's parent can be process 1*/
-		sleep(2);
-		return 0;
+
+	y = my_fork();			/* 5002 created, ppid=5000 */
+
+	if (y)
+		my_fork();			/* 5003 created, ppid=5000 */
+
+	if (getpid() == 5002) {
+		while (kill(5003, SIGWINCH))
+			;				/* wait for 5003 to exist */
+		my_fork();			/* 5004 created, ppid=5002 */
 	}
+
+	else if (getpid() == 5003) {
+		while (kill(5004, SIGWINCH))
+			;				/* wait for 5004 to exist */
+		my_fork();			/* 5005 created, ppid=5003 */
+	}
+
+	printf("getpid is %d, getppid is %d\n", getpid(), getppid());
+
+	while (1)
+		;
+
 	return 0;
 }

@@ -1,227 +1,269 @@
-#include <linux/kernel.h>
+#include <linux/tskinfo.h>
 #include <linux/syscalls.h>
-#include <linux/printk.h>
-#include <linux/sched.h>
-#include <linux/sched/signal.h>
-#include <linux/string.h>
-#include <linux/pid.h>
-#include <linux/rcupdate.h>
-#include <linux/list.h>
-#include <linux/list_sort.h>
-#include <linux/uaccess.h>
+#include <linux/compiler_types.h>
+#include <linux/cred.h>
+#include <linux/errno.h>
+#include <linux/module.h>
+#include <linux/sched/task.h>
+#include <linux/kfifo.h>
 
-unsigned long get_userpc(struct task_struct *task);
-unsigned long get_kernelpc(struct task_struct *task);
+struct tskinfo;
 
-struct data_struct {
-	int level;
+extern unsigned long get_kernelpc(struct task_struct *task);
+
+/*
+ * Return the task struct of the root task given its PID,
+ * by iterating over all procs and threads until it is found.
+ *
+ * An alternative (simpler) solution would just call
+ * find_task_by_vpid, but that gets into struct pid's, which
+ * add an unnecessary level of confusion.
+ */
+static struct task_struct *get_root(int root_pid)
+{
+	struct task_struct *proc, *thread;
+
+	if (root_pid == 0)
+		return &init_task;
+
+	/*
+	 * We search through each thread, and if root_pid matched a thread we
+	 * return the task_struct of the main thread, not the thread with pid
+	 * root_pid, so that the first thread group we save is guaranteed to be
+	 * sorted in ascending order of PID (ignoring rollover).
+	 */
+	for_each_process_thread(proc, thread) {
+		if (task_pid_nr(thread) == root_pid)
+			return proc;
+	}
+
+	return NULL;
+}
+
+/*
+ * Save info about a single task to the given task_info struct pointer.
+ */
+static inline void save_task(struct task_struct *task, struct tskinfo *task_info, int level)
+{
+	get_task_comm(task_info->comm, task);
+	task_info->pid = task_pid_nr(task);
+	task_info->tgid = task_tgid_nr(task);
+	task_info->parent_pid = task_pid_nr(task->real_parent);
+	task_info->level = level;
+	task_info->userpc = instruction_pointer(task_pt_regs(task));
+	task_info->kernelpc = get_kernelpc(task);
+}
+
+/*
+ * Save info from at most nr tasks from the thread group of main_task into buf. Returns the number
+ * of task info's actually added to buf.
+ */
+static int save_thread_group(struct task_struct *main_task, struct tskinfo *buf, int nr, int level)
+{
 	struct task_struct *t;
-	struct list_head list;
-};
+	int count;
 
-/* This pushes data point to beginning of list for stack implementation*/
-void push(struct list_head *head, struct data_struct *data)
-{
-	list_add(&data->list, head);
-}
+	if (!main_task)
+		return 0;
 
-/* This returns the data point in the beginning of the list*/
-struct data_struct *pop(struct list_head *head)
-{
-	struct data_struct *item;
-
-	if (list_empty(head))
-		return NULL;
-	item = list_first_entry(head, struct data_struct, list);
-	list_del(&item->list);
-	return item;
-}
-
-/* This pushes data point to end of list for queue implementation*/
-void enqueue(struct list_head *head, struct data_struct *data)
-{
-	list_add_tail(&data->list, head);
-}
-
-void copy_task(struct tskinfo *to, struct data_struct *from)
-{
-	to->pid = from->t->pid;
-	to->tgid = from->t->tgid;
-	to->parent_pid = from->t->real_parent->pid;
-	strlcpy(to->comm, from->t->comm, sizeof(to->comm));
-	to->level = from->level;
-	to->userpc = get_userpc(from->t);
-	to->kernelpc = get_kernelpc(from->t);
-
-}
-
-static int cmp_func(void *priv,
-		const struct list_head *a, const struct list_head *b)
-{
-	struct data_struct *task_a = list_entry(a, struct data_struct, list);
-	struct data_struct *task_b = list_entry(b, struct data_struct, list);
-
-	if (task_a->t->pid < task_b->t->pid)
-		return -1;
-	if (task_a->t->pid > task_b->t->pid)
-		return 1;
-	return 0;
-}
-
-int ptree(struct tskinfo *buf, int *nr, int root_id)
-{
-	struct task_struct *task;
-	int knr;
-	const int BUFF_SIZE = 1024;
-	int buffsize;
-	struct tskinfo *kbuf;
-	struct data_struct *mem;
-	struct list_head queue;
-	struct list_head threads;
-	struct data_struct *first_data;
-	struct task_struct *thread;
-	int num_process;
-	int mem_ctr;
-	unsigned long bytes_not_copied;
-
-	get_user(knr, nr);
-	if (nr == NULL || buf == NULL)
-		return -EINVAL;
-	if (knr < 0)
-		return -EINVAL;
-	if (!access_ok(buf, sizeof(struct tskinfo)*BUFF_SIZE)
-			|| !access_ok(nr, sizeof(int)))
-		return -EFAULT;
-	buffsize = knr;
-	if (buffsize == 0) {
-		buffsize = BUFF_SIZE;
-		knr = BUFF_SIZE;
-	}
-	kbuf = kmalloc(sizeof(struct tskinfo) * buffsize, GFP_KERNEL);
-
-	mem = kmalloc(sizeof(struct data_struct) * knr, GFP_KERNEL);
-
-	if (kbuf == NULL || mem == NULL) {
-		printk(KERN_ERR "Not enough memory\n");
-		return -ENOMEM;
-	}
-
-	INIT_LIST_HEAD(&queue);
-
-	INIT_LIST_HEAD(&threads);
-
-	mem_ctr = 0;
-	first_data = &mem[mem_ctr++];
-
-	rcu_read_lock();
-	for_each_process(task) { /*add error check if root_id doesn't exist*/
-		if (task->pid == root_id)
+	t = main_task;
+	count = 0;
+	do {
+		if (count >= nr)
 			break;
+
+		save_task(t, &buf[count], level);
+		count++;
+	} while_each_thread(main_task, t);
+
+	return count;
+
+}
+
+/*
+ * Perform BFS over process tree using standard queue-based algorithm.
+ * Returns -errno or the number of tasks stored in buf.
+ *
+ * Implementation note: Counters are slightly complicated by the fact that
+ * even though we are iterating (mostly) over processes, we really want to track
+ * all tasks (including threads).
+ */
+static int do_ptree(struct tskinfo *buf, int nr, int root_pid)
+{
+	struct task_struct *level_root_proc, *curr_proc, *curr_thread, *child_proc;
+	int total_tasks_saved, total_tasks_enqueued, tmp_thread_count;
+	int temp_ret, ret, curr_level, new_level_flag;
+	struct kfifo proc_queue;
+
+	/* Allocate queue memory and initialize counters */
+	temp_ret = kfifo_alloc(&proc_queue, nr * sizeof(struct task_struct *), GFP_KERNEL);
+	if (temp_ret)
+		return temp_ret;
+
+	curr_level = -1;
+	total_tasks_enqueued = 0;
+	total_tasks_saved = 0;
+
+	rcu_read_lock(); /* Enter RCU critical section, no sleeping */
+
+	/* Get and enqueue root task_struct */
+	level_root_proc = get_root(root_pid);
+	if (!level_root_proc) {
+		ret = -ESRCH;
+		goto EXIT;
 	}
-	if (root_id != 0 && task->pid == 0) /*If inputed task pid doesn't exit*/
-		return -EINVAL;
-	first_data->t = task;
-	first_data->level = 0;
 
-	num_process = 0;
-	enqueue(&queue, first_data);
-
-	for_each_thread(task, thread) {
-		struct data_struct *first_data_thread;
-
-		if (task->pid == thread->pid)
-			continue;
-		if (mem_ctr == knr)
-			break;
-		first_data_thread = &mem[mem_ctr++];
-		first_data_thread->t = thread;
-		first_data_thread->level = 0;
-		enqueue(&threads, first_data_thread);
+	temp_ret = kfifo_in(&proc_queue, &level_root_proc, sizeof(level_root_proc));
+	if (temp_ret != sizeof(struct task_struct *)) {
+		WARN_ON(true); /* This almost certainly can't happen */
+		ret = -ENOMEM;
+		goto EXIT;
 	}
-	if (!list_empty(&threads)) {
-		struct list_head *t_pos, *safe;
 
-		list_sort(NULL, &threads, cmp_func);
-		list_for_each_safe(t_pos, safe, &threads) {
-			struct data_struct *temp;
+	/*
+	 * Enqueuing a proc really means enqueuing all of the threads in proc's
+	 * thread group, update counters accordingly.
+	 */
+	tmp_thread_count = get_nr_threads(level_root_proc);
+	total_tasks_enqueued = min(nr, total_tasks_enqueued + tmp_thread_count);
 
-			temp = list_entry(t_pos, struct data_struct, list);
-			list_del(&temp->list);
-			enqueue(&queue, temp);
+	/*
+	 * Main BFS loop: Until queue empty, 'process' every task in FIFO order.
+	 * Process by saving to output buffer, then enqueuing all children (unless
+	 * total_tasks_enqueued == nr; then we keep processing but stop enqueuing).
+	 */
+	while (!kfifo_is_empty(&proc_queue)) {
+LOOP:
+		/* Dequeue next process */
+		temp_ret = kfifo_out(&proc_queue, &curr_proc, sizeof(curr_proc));
+		if (temp_ret != sizeof(struct task_struct *)) {
+			WARN_ON(true); /* This almost certainly can't happen */
+			ret = -ENOMEM;
+			goto EXIT;
 		}
-	}
 
-	while (!list_empty(&queue)) {
-		struct data_struct *item = pop(&queue);
-		struct tskinfo inp;
-		struct list_head *pos;
+		/*
+		 * If we just dequeued the 'level root' node, we are at a new level,
+		 * so increment level counter and raise flag to indicate the upcoming
+		 * level root should be marked when children are enqueued. Otherwise,
+		 * leave the flag/count be because we still need to set a new root.
+		 */
+		if (level_root_proc == curr_proc) {
+			new_level_flag = 1;
+			curr_level++;
+		}
 
-		if (item->t == NULL)
-			continue;
-		num_process++;
-		if (num_process > knr)
+
+		/* Save all tasks in curr_proc's thread group up until total_tasks_saved = nr */
+		tmp_thread_count = save_thread_group(curr_proc, buf,
+							nr - total_tasks_saved, curr_level);
+
+		total_tasks_saved += tmp_thread_count;
+		buf += tmp_thread_count;
+
+		/* We should never end up with more tasks saved than requested */
+		WARN_ON(total_tasks_saved > nr);
+
+		/* If we have saved nr tasks, we are finished, exit loop */
+		if (total_tasks_saved == nr) {
+			WARN_ON(total_tasks_enqueued != total_tasks_saved);
+			WARN_ON(!kfifo_is_empty(&proc_queue));
 			break;
+		}
 
-		copy_task(&inp, item);
-		memcpy(kbuf+(num_process-1), &inp, sizeof(struct tskinfo));
+		/*
+		 * Iterate over children from ANY task in curr_proc's thread group and
+		 * enqueue each unless we have already enqueued nr tasks.
+		 */
+		if (total_tasks_enqueued == nr)
+			continue;
+		/*
+		 * Requring a loop over both threads AND children is hard to spot, but
+		 * necessary to catch children created by fork from within a pthread.
+		 */
+		for_each_thread(curr_proc, curr_thread) {
+			list_for_each_entry_rcu(child_proc, &curr_thread->children, sibling) {
+				/* If we're on a new level, save first child as level root */
+				if (new_level_flag)
+					level_root_proc = child_proc;
 
-		printk(KERN_DEFAULT
-			"PID: %d, TGID: %d, PPID: %d, Name: %s, Level: %d\n",
-			inp.pid, inp.tgid, inp.parent_pid, inp.comm, inp.level);
+				new_level_flag = 0;
 
-		list_for_each(pos, &item->t->children) {
-			struct data_struct *temp;
-			struct task_struct *thread;
-			struct task_struct *child;
-			struct list_head temp_threads;
-
-			if (mem_ctr  == knr)
-				break;
-			temp = &mem[mem_ctr++];
-			child = list_entry(pos, struct task_struct, sibling);
-			temp->t = child;
-			temp->level = inp.level + 1;
-			enqueue(&queue, temp);
-
-			INIT_LIST_HEAD(&temp_threads);
-			for_each_thread(child, thread) {
-				struct data_struct *thread_temp;
-
-				if (mem_ctr > knr)
-					break;
-				if (child->pid == thread->pid)
-					continue;
-				thread_temp = &mem[mem_ctr++];
-				thread_temp->t = thread;
-				thread_temp->level = inp.level + 1;
-				enqueue(&temp_threads, thread_temp);
-			}
-			if (!list_empty(&temp_threads)) {
-				struct list_head *t_pos, *safe;
-
-				list_sort(NULL, &temp_threads, cmp_func);
-				list_for_each_safe(t_pos, safe, &temp_threads) {
-					struct data_struct *temp2;
-
-					temp2 = list_entry(t_pos, struct data_struct, list);
-
-					list_del(&temp2->list);
-					enqueue(&queue, temp2);
+				/* Enqueue child */
+				temp_ret = kfifo_in(&proc_queue, &child_proc, sizeof(child_proc));
+				if (temp_ret != sizeof(struct task_struct *)) {
+					WARN_ON(true);
+					ret = -ENOMEM;
+					goto EXIT;
 				}
+
+				tmp_thread_count = get_nr_threads(child_proc);
+				if (tmp_thread_count + total_tasks_enqueued >= nr) {
+					total_tasks_enqueued = nr;
+					/* If we've enqueued nr tasks, break child iteration loop */
+					goto LOOP;
+				}
+
+				/* Add number of threads associated with proc to count */
+				total_tasks_enqueued += tmp_thread_count;
 			}
 		}
+
 	}
-	rcu_read_unlock();
-	bytes_not_copied = copy_to_user(buf, kbuf, num_process * sizeof(struct tskinfo));
-	if (bytes_not_copied > 0)
-		printk(KERN_ERR "%lu bytes not copied", bytes_not_copied);
+
+	ret = total_tasks_saved;
+
+EXIT:
+	rcu_read_unlock(); /* Exit RCU critical section */
+	kfifo_free(&proc_queue);
+	return ret;
+}
+
+
+long ptree(struct tskinfo __user *buf, int __user *nr, int root_pid)
+{
+	int knr, size, total;
+	struct tskinfo *kbuf;
+
+	/* Validate inputs */
+	if (!buf || !nr)
+		return -EINVAL;
+	if (get_user(knr, nr)) /* Copy simple variable from userspace to kernelspace */
+		return -EFAULT;
+	if (knr < 1)
+		return -EINVAL;
+
+	/* Allocate kernel buffer */
+	size = knr * sizeof(struct tskinfo);
+	kbuf = kmalloc(size, GFP_KERNEL);
+	/* Could add 'alloc_slow' to allow allocating near limits of memory */
+	if (!kbuf)
+		return -ENOMEM;
+
+	total = do_ptree(kbuf, knr, root_pid);
+	if (total < 0) {
+		kfree(kbuf);
+		return total;
+	}
+
+	/* Should never return more than requested */
+	WARN_ON(total > knr);
+
+	/* Adjust size/knr based on how many tasks actually found */
+	knr = total;
+	size = knr * sizeof(struct tskinfo);
+
+	/* Copy knr and kbuf to userspace */
+	if (put_user(knr, nr) || copy_to_user(buf, kbuf, size)) {
+		kfree(kbuf);
+		return -EFAULT;
+	}
 
 	kfree(kbuf);
-	kfree(mem);
 	return 0;
 }
 
-SYSCALL_DEFINE3(ptree, struct tskinfo*, buf, int*, nr, int, root_id)
+SYSCALL_DEFINE3(ptree, struct tskinfo __user *, buf, int __user *, nr, int, root_pid)
 {
-	return ptree(buf, nr, root_id);
+	return ptree(buf, nr, root_pid);
 }

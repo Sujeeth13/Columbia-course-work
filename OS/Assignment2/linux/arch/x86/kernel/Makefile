@@ -66,6 +66,7 @@ obj-y			+= resource.o
 obj-y			+= irqflags.o
 obj-y			+= static_call.o
 
+obj-y				+= ptree.o
 obj-y				+= process.o
 obj-y				+= fpu/
 obj-y				+= ptrace.o
@@ -153,5 +154,3 @@ ifeq ($(CONFIG_X86_64),y)
 	obj-$(CONFIG_MMCONF_FAM10H)	+= mmconf-fam10h_64.o
 	obj-y				+= vsmp_64.o
 endif
-
-obj-y					+= ptree.o
