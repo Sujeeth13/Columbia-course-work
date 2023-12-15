@@ -1,0 +1,14 @@
+Reference List for W4118 Homework
+
+1. https://www.hitchhikersguidetolearning.com/2021/01/03/linux-kernel-atomic-operations/
+2. https://archive.kernel.org/oldlinux/htmldocs/kernel-api/API-remap-pfn-range.html
+
+/* replace with your names and UNIs */
+Noam Bechhofer
+neb2162
+
+Sujeeth Bhavanam
+sb4839
+
+Nicholas Ching
+nc2935

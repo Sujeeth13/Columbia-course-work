@@ -1,0 +1,71 @@
+HMWK 5
+
+Noam Bechhofer
+neb2162
+- Completed part 1.1 and 1.2
+- Work on part 3 with nick
+- Contributed to part 5 
+
+Sujeeth Bhavanam
+sb4839
+- Completed parts 2.1 & 2.2
+- Worked on part 4 with Nick (writing tests) 
+- contributed to part 5 
+
+Nicholas Ching
+nc2935
+- Completed part 1.3 
+- Assisted in finding hooks for part 2.2.
+- worked on completing part 3 with Noam. 
+- Completed part 4 with Sujeeth (helping write tests)
+- Contributed to part 5 
+
+Part 1:
+- implemented according to the spec 
+- we mmap a region of memory for the entries pointer. 
+- in the kernel space, we split the VMA to find the exact address range we wanted, and then we remapped the shadow page table. 
+- The zap_pfn_range function was used to destroy the shadow page table from the kernel side. Note that we used the start and end boundaries 
+  of the vma to fill the parameters for remap_pfn_range and zap_vma_ptes
+
+
+Part 2:
+
+2.1.
+  - Consisted of following the spec to handle the hook. 
+  - First, intialized the shadow table, then defined the hook functionality. 
+  - we added the Hook function to the correct places for mmap, malloc, free, munmap, mprotect, execve, VM expansion and deallocation 
+  - note that malloc -- could not track the state changes effectively. 
+
+2.2.
+  - inserted the hooks in the appropriate places for: 
+    - pte initialization 
+    - tracking when a new pte is inserted 
+    - page faulting
+    - fork and execve. 
+  - we also added an MMU notifier for page invalidation. 
+
+Part 3:
+  - part 3 consisted of accessing the page table and retrieving what was stored in physical memory 
+  - based on the pfn given as a parameter, we converted the pfn to a virtual address, and then passed that back to the use buffer using copy_to_user
+
+Part 4:
+
+  Test cases handled (target process): 
+  - we mmap space 
+  - wrote values to the mmapped region 
+  - changed the write protections 
+  - changed protections again 
+  - forked 
+  - wrote to the forked memory 
+  - mmunmapped 
+  - exited 
+
+PLEASE NOTE: our part 4 did not meet the specifications for a looping condition as we ran out of time. However, we did complete the running
+of test cases 
+
+To test we made an inspector.c and target.c file. We added functions in the target.c file to track the changes and do target.c file asks
+for user input between each change that we tried to see. So do enter a number or anything to proceed forward. The inspector code also requires
+the same procedure. Before starting the inspector put the target pid in the inspector code.
+
+Enter a value in the target first and then in the inspector and keep repeating this process till both processes exit.
+

@@ -1,0 +1,110 @@
+Part 5:
+Enter your answer in the designated location. Do NOT remove lines that start
+with '='.
+
+================================== Q1 start ===================================
+1.  Suppose we have a 32-bit system whose hardware only supports two levels of
+paging and the page size is 4KB. All levels of the page table for process 1 are
+allocated in physical memory, and they are stored contiguously starting at
+physical frame number (pfn) 10. In other words, the pgd is stored starting in
+pfn 10, and the ptes are stored starting in the physical frame of memory
+immediately after those used to store the pgd. For process 1, if virtual address
+0x3c0ffff maps to physical address 0x7d0fff, what pfn will be stored in the pgd
+and pte entries of process 1's page table that are used to translate this
+virtual address to its physical address? Write your answer using decimal numbers
+(not binary or hexidecimal).
+
+the pfn stored in the pte is 2000.
+the pfn stored in the pgd is 26.
+
+
+
+=================================== Q1 end ====================================
+
+
+================================== Q2 start ===================================
+2.  Suppose you have a system that uses a TLB and a 4-level page table, and a
+virtually address cache.  The TLB access time is 10 ns, the virtually addressed
+cache access time is 40 ns, and RAM access time is 100 ns.  The TLB has a 95%
+hit rate, and the virtually addressed cache has a 90% hit rate.  What is the
+average access time?
+
+53 ns
+
+=================================== Q2 end ====================================
+
+
+================================== Q3 start ===================================
+3. For a typical modern 64-bit Linux system which uses a 48-bit virtual address
+space for processes and 4KB sized pages, if a single frame of physical memory is
+mapped to a process’s page table, what is the minimum amount of memory that
+would be required to store the process’s page table when using a one-level page
+table, two-level page table, three-level page table, and four-level page table?
+
+one-level:   2^39 bytes
+two-level:   2^30 + 4KB
+three-level:  2^21 + 8KB
+four-level:  2^12 + 12KB
+=================================== Q3 end ====================================
+
+
+================================== Q4 start ===================================
+4. Specify the URL in bootlin indicating the file and line number at which the
+physical address is computed from the pgd, and the file and line number at which
+that address is loaded to the page table base register for the user space
+address space is set on a context switch, for both arm64 and x86.
+
+https://elixir.bootlin.com/linux/v6.1.11/source/[your answer]
+
+ARM64:
+https://elixir.bootlin.com/linux/latest/source/arch/arm64/mm/context.c#L353
+https://elixir.bootlin.com/linux/latest/source/arch/arm64/mm/context.c#L369
+
+x86:
+https://elixir.bootlin.com/linux/v6.1.11/source/arch/x86/mm/tlb.c#L285
+https://elixir.bootlin.com/linux/v6.1.11/source/arch/x86/mm/tlb.c#L293
+
+=================================== Q4 end ====================================
+
+
+================================== Q5 start ===================================
+5. Consider the following C program, run on a single CPU on x86 architecture:
+
+int main() {
+	int *ptr = NULL;
+	*ptr = 5;
+}
+
+Identify the kernel functions from those listed in the spec that will get
+executed, and put them in the order in which they will be called. Start your
+trace at the time when the process begins executing the first instruction of
+main(), and end your trace when the process will no longer run anymore.
+Functions may be called multiple times. Not all functions need to be used.
+Also, not all functions that are executed are listed in the spec – limit your
+answer to include only these functions. In your answer, you should write each
+function exactly how it appears in the spec (no extra tabs, spaces, uppercase
+letters, (), etc.), with each function on a separate line. We will be grading
+your answers based on a diff – if you do not follow the formatting
+specifications, you will not receive credit.
+
+handle_page_fault
+do_user_addr_fault
+find_vma
+bad_area
+__bad_area_nosemaphore
+find_vma
+force_sig_fault
+force_sig_fault_to_task
+send_signal_locked
+sigaddset
+irqentry_exit_to_user_mode
+exit_to_user_mode_prepare
+exit_to_user_mode_loop
+arch_do_signal_or_restart
+get_signal
+do_group_exit
+do_exit
+
+
+
+=================================== Q5 end ====================================
