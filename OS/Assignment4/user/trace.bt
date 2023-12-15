@@ -1,0 +1,51 @@
+#include <linux/sched.h>
+
+BEGIN
+{
+        printf("COMM,PID,RUNQ_MS,TOTAL_MS\n");
+}
+
+tracepoint:sched:sched_wakeup_new
+{
+        @created[args->pid] = nsecs;
+        @lastEnqueue[args->pid] = nsecs;
+        @runqNs[args->pid] = (uint64)0;
+}
+
+tracepoint:sched:sched_wakeup,
+{
+        @lastEnqueue[args->pid] = nsecs;
+}
+
+tracepoint:sched:sched_switch
+{
+        if (args->prev_state == TASK_RUNNING && @created[args->prev_pid] > 0) {
+                @lastEnqueue[args->prev_pid] = nsecs;
+        }
+
+        if (@created[args->next_pid] > 0 && @lastEnqueue[args->next_pid] > 0) {
+                $le = @lastEnqueue[args->next_pid];
+                $qd = nsecs - $le;
+                @runqNs[args->next_pid] += $qd;
+                @lastEnqueue[args->next_pid] = 0;
+        }
+}
+
+tracepoint:sched:sched_process_exit
+{
+        if (@created[args->pid] > 0) {
+                $pid = args->pid;
+                $comm = args->comm;
+                $runq_ms = @runqNs[args->pid] / 1000000;
+                $runtime = (nsecs - @created[args->pid]) / 1000000;
+                delete(@created[args->pid]);
+                printf("%s,%lu,%lu,%lu\n", $comm, $pid, $runq_ms, $runtime);
+        }
+}
+
+END
+{
+        clear(@created);
+        clear(@lastEnqueue);
+        clear(@runqNs);
+}

@@ -1,0 +1,57 @@
+Part 6:
+Enter your answer in the designated location. Do NOT remove lines that start
+with '='.
+
+================================== Q1 start ===================================
+1. Give the exact URL on elixir.bootlin.com pointing to the file and line number
+of the function that initializes the idle tasks on CPUs other than the boot CPU
+for a multi-CPU system. What is the PID of the task that calls this function?
+Note: make sure you use v6.1.11.
+
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/smpboot.c#L66
+or
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/smpboot.c#L50
+PID: 1
+
+
+=================================== Q1 end ====================================
+
+
+================================== Q2 start ===================================
+2. Give the exact URL on elixir.bootlin.com pointing to the file and line number
+at which the TIF_NEED_RESCHED flag is set for the currently running task as a
+result of its time quantum expiring if the task is scheduled using SCHED_RR.
+Select the file and line number most related to the SCHED_RR (i.e. do not select
+a generic helper function that may be used outside of SCHED_RR).
+Note: make sure you use v6.1.11.
+
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/rt.c#L2660
+
+=================================== Q2 end ====================================
+
+
+================================== Q3 start ===================================
+3. Give the exact URL on elixir.bootlin.com pointing to the files and line numbers
+at which a timer interrupt occurring for a process running in user mode, whose time
+quantum has expired, results in schedule being called. Select the line of the call
+to schedule. This location is different for ARM64 and x86 - provide the answer for
+both.
+Note: make sure you use v6.1.11.
+
+ARM64: https://elixir.bootlin.com/linux/v6.1.11/source/arch/arm64/kernel/signal.c#L1115
+x86: https://elixir.bootlin.com/linux/v6.1.11/source/kernel/entry/common.c#L159
+
+=================================== Q3 end ====================================
+
+
+================================== Q4 start ===================================
+4. What is the default time period for a tick? Write your answer in milliseconds.
+Hint: You may need to look in the kernel configuration files to find this answer.
+
+4 ms
+The time period of a tick in the kernel is calculated as 1/HZ seconds. This is configured
+in Kconfig.hz, where the default frequency is 250/s, producing a tick duration of
+1/250s = 4ms.
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/Kconfig.hz
+
+=================================== Q4 end ====================================

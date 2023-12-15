@@ -1,0 +1,23 @@
+Reference List for W4118 Homework
+
+/* include the following statement if you have not referenced anything */
+In doing my homework, I certify that I have not used any materials
+other than the course textbooks and Linux source code, and I have not
+discussed the homework assignment with anyone other than the W4118
+instructional staff and, for the team programming portion of the assignment,
+my team.
+
+/* OR delete the above statement and include a list of references */
+1.  http://www.sanfoundry.com/operating-system-questions-answers-processes/,
+used for answering Exercise 1.4.
+
+2.  John Doe (abc1234@columbia.edu), discussed concepts for Exercise 1.6.
+
+3.  http://www.sanfoundry.com/operating-system-questions-answers-processes/,
+used for doing programming part 3.
+
+4.  http://wiki.c2.com/?WeirdErrorMessages, used for debugging programming part 1.
+
+/* replace with your names and UNIs */
+YOUR NAME
+YOUR UNI

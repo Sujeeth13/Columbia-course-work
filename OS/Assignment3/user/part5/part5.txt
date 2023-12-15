@@ -1,0 +1,142 @@
+Part 5:
+Enter your answer in the designated location. Do NOT remove lines that start
+with '='.
+
+================================== Q1 start ===================================
+1. Give each bootlin URL that shows the file and line number in which you
+inserted in a pstrace_add call to trace the state change to (if you inserted a
+call in more than one place, add another link on a new line below):
+
+TASK_RUNNING:
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/core.c#L6549
+
+
+TASK_RUNNABLE:
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/core.c#L4224
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/core.c#L4750
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/core.c#L6549
+
+
+TASK_INTERRUPTIBLE:
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/core.c#L6493
+
+
+TASK_UNINTERRUPTIBLE:
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/core.c#L6493
+
+
+_TASK_STOPPED:
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/core.c#L6493
+
+
+EXIT_ZOMBIE:
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/sched/core.c#L6493
+
+
+EXIT_DEAD:
+https://elixir.bootlin.com/linux/v6.1.11/source/kernel/exit.c#L244
+
+
+=================================== Q1 end ====================================
+
+
+================================== Q2 start ===================================
+2. Which state change(s) can be directly caused by interrupts (i.e. an interrupt
+handler will change the _state field)? If your answer involves more than one
+state change, add another change on a new line below, following the same format.
+
+[TASK_INTERRUPTIBLE] -> [TASK_RUNNABLE] 
+[TASK_UNINTERRUPTIBLE] -> [TASK_RUNNABLE]
+
+=================================== Q2 end ====================================
+
+
+================================== Q3 start ===================================
+3. Which state change(s) can only be caused by the running process itself (i.e.
+current will change its own _state field)? If your answer involves more than one
+state change, add another change on a new line below, following the same format.
+
+[TASK_RUNNING] -> [TASK_INTERRUPTIBLE]
+[TASK_RUNNING] -> [TASK_UNINTERRUPTIBLE]
+[TASK_RUNNING] -> [TASK_RUNNABLE]
+[TASK_RUNNING] -> [_TASK_STOPPED]
+
+=================================== Q3 end ====================================
+
+
+================================== Q4 start ===================================
+4. Which state change(s) always involves or results in the current running
+process calling schedule? If your answer involves more than one
+state change, add another change on a new line below, following the same format.
+
+[TASK_RUNNING] -> [TASK_INTERRUPTIBLE]
+[TASK_RUNNING] -> [TASK_UNINTERRUPTIBLE]
+[TASK_RUNNING] -> [_TASK_STOPPED]
+[TASK_RUNNING] -> [TASK_RUNNABLE]
+[TASK_RUNNING] -> [EXIT_ZOMBIE] (not in Q3 since not a change to _state field) 
+
+=================================== Q4 end ====================================
+
+
+================================== Q5 start ===================================
+5. There are 3 tasks with respective pid values 1150, 1152, and 1154 and they
+run in the following order on a CPU: pid 1150, 1152, 1154, 1152, 1150, 1154.
+In __schedule, there are two variables, prev and next.
+
+a. When each task starts running, what will be the respective PIDs for prev and
+next? For any prev or next that cannot be known from the information provided,
+indicate unknown.
+
+1150:
+prev = unknown
+next = unknown
+
+1152:
+prev = unknown
+next = unknown
+
+1154:
+prev = unknown
+next = unknown
+
+1152:
+prev = 1152
+next = 1154
+
+1150:
+prev = 1150
+next = 1152
+
+1154:
+prev = 1154
+next = 1152
+
+b. When each task stops running, what will be the respective PIDs for prev and
+next? For any prev or next that cannot be known from the information provided,
+indicate unknown.
+
+1150:
+prev = 1150
+next = 1152
+
+1152:
+prev = 1152
+next = 1154
+
+1154:
+prev = 1154
+next = 1152
+
+1152:
+prev = 1152
+next = 1150
+
+1150:
+prev = 1150
+next = 1154
+
+1154:
+prev = 1154
+next = unknown
+
+=================================== Q5 end ====================================
